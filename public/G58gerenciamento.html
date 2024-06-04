@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+  <head>
+  
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gerenciamento de Conta</title>
+   
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body class="bg-light">
+    <div class="container mt-5">
+      <div class="row">
+
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h3>Gerenciar Seus Dados</h3>
+            </div>
+            <div class="card-body">
+              <form>
+                <div class="mb-3">
+                  <label for="nome" class="form-label">Nome</label>
+                  <input type="text" class="form-control" id="nome" value="Seu Nome" required>
+                </div>
+                <div class="mb-3">
+                  <label for="idade" class="form-label">Idade</label>
+                  <input type="number" class="form-control" id="idade" value="Sua Idade" required>
+                </div>
+                <div class="mb-3">
+                  <label for="nickname" class="form-label">Nickname de Usuário</label>
+                  <input type="text" class="form-control" id="nickname" value="Seu Nickname" required>
+                </div>
+                <div class="mb-3">
+                  <label for="email" class="form-label">E-mail</label>
+                  <input type="email" class="form-control" id="email" value="seu.email@example.com" required>
+                </div>
+                <div class="mb-3">
+                  <label for="senha" class="form-label">Senha</label>
+                  <input type="password" class="form-control" id="senha" required>
+                </div>
+                <div class="d-grid">
+                  <button type="submit" class="btn btn-primary">Atualizar Dados</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+     
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h3>Dados de Outros Usuários</h3>
+            </div>
+            <div class="card-body">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th scope="col">Nome</th>
+                    <th scope="col">Idade</th>
+                    <th scope="col">Nickname</th>
+                    <th scope="col">E-mail</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>João Silva</td>
+                    <td>25</td>
+                    <td>joao123</td>
+                    <td>joao.silva@example.com</td>
+                  </tr>
+                  <tr>
+                    <td>Maria Oliveira</td>
+                    <td>30</td>
+                    <td>mariaO</td>
+                    <td>maria.oliveira@example.com</td>
+                  </tr>
+                  <tr>
+                    <td>Carlos Souza</td>
+                    <td>28</td>
+                    <td>carlos_s</td>
+                    <td>carlos.souza@example.com</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
