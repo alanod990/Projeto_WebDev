@@ -1,54 +1,113 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const path = require('path'); // Adicionado para manipulação de caminhos
+const bcrypt = require('bcryptjs');
+const mongoose = require('mongoose');
+const session = require('express-session');
 
 const app = express();
+const port = 3000;
+
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const {MongoClient, ObjectId} = require("mongodb");
-async function connect(){
-  if(global.db) return global.db;
-    const conn = await MongoClient.connect("mongodb+srv://projetofofoca:QamAsfi0qk1YHzKY@fofoqueiros.myctr.mongodb.net/?retryWrites=true&w=majority&appName=Fofoqueiros");
-  if(!conn) return new Error("Can't connect");
-    global.db = await conn.db("unifor");
-  return global.db;
-}
+app.use(session({
+  secret: 'seu_segredo', 
+  saveUninitialized: true,
+  cookie: { secure: false } 
+}));
 
-// Definição do esquema e modelo do usuário
+mongoose.connect('mongodb://localhost:27017/fofoqueiras', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+});
+
 const userSchema = new mongoose.Schema({
-    nome: String,
-    idade: Number,
-    nickname: String,
-    email: { type: String, required: true },
-    senha: { type: String, required: true }
+  nome: String,
+  idade: Number,
+  nickname: String,
+  email: String,
+  senha: String
 });
 
 const User = mongoose.model('User', userSchema);
 
-// Rota raiz que serve o formulário de cadastro
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'G58cadastro.html'));
+app.post('/cadastro-usuario', async (req, res) => {
+  const { nome, idade, nickname, email, senha } = req.body;
+
+  try {
+    const hash = bcrypt.hashSync(senha, 10);
+    const novoUsuario = new User({ nome, idade, nickname, email, senha: hash });
+    await novoUsuario.save();
+    res.status(201).send('Usuário cadastrado com sucesso! Prossiga para o login.');
+  } catch (error) {
+    res.status(500).send('Erro ao cadastrar usuário.');
+  }
 });
 
-// Rota de cadastro de usuário
-app.post('/cadastro-usuario', (req, res) => {
-    const newUser = new User({
-        nome: req.body.nome,
-        idade: req.body.idade,
-        nickname: req.body.nickname,
-        email: req.body.email,
-        senha: req.body.senha
-    });
+app.post('/login', async (req, res) => {
+  const { email, senha } = req.body;
 
-    newUser.save()
-        .then(() => res.redirect('/public/G58gerenciamento.html'))
-        .catch(err => res.status(400).send("Erro ao salvar os dados"));
-
+  try {
+    const usuario = await User.findOne({ email });
+    if (usuario && bcrypt.compareSync(senha, usuario.senha)) {
+      req.session.userId = usuario._id; // armazena o ID do usuário na sessão
+      res.json({ success: true });
+    } else {
+      res.json({ success: false, message: 'Email ou senha incorretos' });
+    }
+  } catch (error) {
+    console.error('Erro no login:', error);
+    res.status(500).send('Erro no servidor.');
+  }
 });
 
-// Configuração do servidor para escutar em uma porta específica
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+function autenticar(req, res, next) {
+  if (req.session.userId) {
+    next();
+  } else {
+    res.redirect('/G58login.html');
+  }
+}
+
+app.get('/G58gerenciamento.html', autenticar, (req, res) => {
+  res.sendFile(__dirname + '/G58gerenciamento.html');
+});
+
+app.get('/usuarios/current', autenticar, async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    const usuario = await User.findById(userId);
+    res.json(usuario);
+  } catch (error) {
+    res.status(500).send('Erro ao obter os dados do usuário.');
+  }
+});
+
+app.put('/atualizar-usuario', autenticar, async (req, res) => {
+  const userId = req.session.userId;
+  const { nome, idade, nickname, email, senha } = req.body;
+
+  try {
+    const hash = bcrypt.hashSync(senha, 10);
+    await User.findByIdAndUpdate(userId, { nome, idade, nickname, email, senha: hash });
+    res.status(200).send('Dados do usuário atualizados com sucesso!');
+  } catch (error) {
+    console.error('Erro ao atualizar usuário:', error);
+    res.status(500).send('Erro ao atualizar usuário.');
+  }
+});
+
+app.get('/usuarios', autenticar, async (req, res) => {
+  try {
+    const usuarios = await User.find({}, 'nickname idade nome email');
+    res.json(usuarios);
+  } catch (error) {
+    res.status(500).send('Erro ao obter usuários.');
+  }
+});
+
+app.use(express.static('public'));
+
+app.listen(port, () => {
+  console.log(`Servidor rodando em http://localhost:${port}`);
 });
